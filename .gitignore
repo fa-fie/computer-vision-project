@@ -1,0 +1,6 @@
+data/*
+!data/.keep
+
+.vscode/*
+
+model/*.pth
