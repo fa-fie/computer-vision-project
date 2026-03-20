@@ -7,6 +7,7 @@ networkx==3.6.1
 numpy==2.4.3
 packaging @ file:///C:/miniconda3/conda-bld/packaging_1761049099114/work
 pillow==12.1.1
+PyYAML>=6.0
 setuptools==80.10.2
 sympy==1.14.0
 torch==2.10.0
