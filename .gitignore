@@ -1,6 +1,6 @@
 data/*
 !data/.keep
-
 .vscode/*
-
 model/*.pth
+idea/*
+__pycache__/*
