@@ -1,9 +1,9 @@
-dataset_root: /home/javigil/Downloads/archive
-annotation_file:
+dataset_root: /Users/angelikamentzelopoulou/Desktop/DSAIT/Q2/Applied Image Processing /computer-vision-project/data
+annotation_file: Test.csv
 output_root: ./physical_adv_attack/generated
 split: test
 seed: 7
-limit:
+limit: 5
 output_extension: .png
 
 shape_map: {}
@@ -36,3 +36,18 @@ attacks:
       - "#5A4634"
       - "#6B7280"
       - "#B91C1C"
+      
+  noise_blur:
+    enabled: true         
+    variants_per_image: 2
+    noise_std: [10, 40]
+    blur_radius: [0.0, 2.0]
+
+  graffiti:
+    enabled: true         
+    variants_per_image: 2
+    texts: ["X", "?", "//", "NO"]
+    font_size_ratio: [0.2, 0.5]
+    opacity_range: [0.6, 0.95]
+    palette: ["#ffffff", "#000000", "#ff0000"]
+    font_path: null
