@@ -23,11 +23,26 @@ physical_adv_attack/
 ├── generator.py      # Pipeline + all attack implementations
 ├── run.py            # CLI entry point
 └── config.yaml       # All runtime parameters
+```
 
+If you are using the *Kaggle* version of the dataset:
+```
 data/
 ├── Test.csv          # Annotation file (Path, ClassId, Roi.*, Width, Height)
 ├── Train.csv
 └── ...               # Image folders referenced by the CSV
+```
+
+If you are using the *Pytorch* version of the dataset:
+```
+data/
+├── GT-final_test.csv
+├── gtsrb/
+├──── GTSRB/
+├────── Final_Test
+├────── Training
+├────── ...
+└── ...
 ```
 
 ---
@@ -163,7 +178,8 @@ Renders a short text string on the sign at a random position.
 ```yaml
 # --- Dataset ---
 dataset_root: /path/to/data          # Root folder; image paths in the CSV are relative to this
-annotation_file: Test.csv            # Relative to dataset_root, or absolute
+dataset_type: pytorch                # "kaggle" or "pytorch"; the datasets have different file structures
+annotation_file: Test.csv            # Only used for Kaggle dataset (else leave empty): Relative to dataset_root, or absolute
 split: test                          # "test" or "train"
 limit:                               # Optional: process only the first N samples
 

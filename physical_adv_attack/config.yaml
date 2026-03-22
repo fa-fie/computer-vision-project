@@ -1,9 +1,10 @@
-dataset_root: /Users/angelikamentzelopoulou/Desktop/DSAIT/Q2/Applied Image Processing /computer-vision-project/data
-annotation_file: Test.csv
+dataset_root: C:\Users\fanni\Documents\University\Master\Electives\Q3_Computer_Vision\computer-vision-project\data\gtsrb
+dataset_type: pytorch
+annotation_file:
 output_root: ./physical_adv_attack/generated
-split: test
+split: train
 seed: 7
-limit: 5
+limit:
 output_extension: .png
 
 shape_map: {}

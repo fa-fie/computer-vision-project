@@ -31,6 +31,7 @@ import json
 import math
 import random
 import sys
+import pathlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -686,9 +687,8 @@ def resolve_output_root(config: dict[str, Any], config_path: Path | None) -> Pat
     return (config_path.parent.parent / output_root).resolve()
 
 
-def resolve_annotation_file(dataset_root: Path, config: dict[str, Any], split: str) -> Path:
-    """Resolve the CSV annotation file path from config or fall back to convention."""
-    annotation_file = str(config.get("annotation_file") or "").strip()
+def resolve_annotation_file(dataset_root: Path, annotation_file: str, split: str) -> Path:
+    """Resolve the CSV annotation file path or fall back to convention."""
     if annotation_file:
         candidate = Path(annotation_file).expanduser()
         if candidate.is_absolute():
@@ -703,9 +703,10 @@ def resolve_annotation_file(dataset_root: Path, config: dict[str, Any], split: s
     raise FileNotFoundError(f"Could not find an annotation file for split '{split}'.")
 
 
-def load_samples(dataset_root: Path, config: dict[str, Any], split: str) -> list[Sample]:
+def load_samples_kaggle_dataset(dataset_root: Path, config: dict[str, Any], split: str) -> list[Sample]:
     """Parse the annotation CSV and return a list of ``Sample`` objects."""
-    annotation_path = resolve_annotation_file(dataset_root, config, split)
+    annotation_file = str(config.get("annotation_file") or "")
+    annotation_path = resolve_annotation_file(dataset_root, annotation_file, split)
     shape_map = {int(k): str(v) for k, v in (config.get("shape_map") or {}).items()}
 
     with annotation_path.open("r", encoding="utf-8", newline="") as handle:
@@ -737,6 +738,81 @@ def load_samples(dataset_root: Path, config: dict[str, Any], split: str) -> list
     limit = config.get("limit")
     return samples[: int(limit)] if limit else samples
 
+
+def load_samples_pytorch_train_dataset(dataset_root: Path, config: dict[str, Any], split: str) -> list[Sample]:
+    shape_map = {int(k): str(v) for k, v in (config.get("shape_map") or {}).items()}
+
+    train_pth = (dataset_root / "GTSRB" / "Training" ).resolve()
+    for folder in train_pth.iterdir():
+        if not folder.is_dir():
+            continue
+
+        annotation_path = (dataset_root / "GTSRB" / "Training" / folder.name / "GT-" + folder.name + ".csv").resolve()
+
+        with annotation_path.open("r", encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle, delimiter=";")
+            samples: list[Sample] = []
+            for index, row in enumerate(reader):
+                image_path = (dataset_root / "GTSRB" / "Training" / folder.name / row.get("Filename")).resolve()
+                width = int(row.get("Width") or row.get("width") or 0)
+                height = int(row.get("Height") or row.get("height") or 0)
+                if width <= 0 or height <= 0:
+                    with Image.open(image_path) as img:
+                        width, height = img.size
+
+                class_id = int(row.get("ClassId") or row.get("class_id") or 0)
+                samples.append(Sample(
+                    image_path=image_path,
+                    split=split,
+                    class_id=class_id,
+                    width=width,
+                    height=height,
+                    roi_x1=int(row.get("Roi.X1") or 0),
+                    roi_y1=int(row.get("Roi.Y1") or 0),
+                    roi_x2=int(row.get("Roi.X2") or width),
+                    roi_y2=int(row.get("Roi.Y2") or height),
+                    shape=shape_map.get(class_id, CLASS_SHAPES.get(class_id, "box")),
+                    sample_id=f"{split}_{index:05d}",
+                ))
+
+    limit = config.get("limit")
+    return samples[: int(limit)] if limit else samples
+
+
+def load_samples_pytorch_test_dataset(dataset_root: Path, config: dict[str, Any], split: str) -> list[Sample]:
+    # There is only a global annotation file if it is the test split
+    annotation_path = resolve_annotation_file(dataset_root, "GT-final_test.csv", split)
+
+    shape_map = {int(k): str(v) for k, v in (config.get("shape_map") or {}).items()}
+    
+    with annotation_path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle, delimiter=";")
+        samples: list[Sample] = []
+        for index, row in enumerate(reader):
+            image_path = (dataset_root / "GTSRB" / "Final_Test" / "Images" / row.get("Filename")).resolve()
+            width = int(row.get("Width") or row.get("width") or 0)
+            height = int(row.get("Height") or row.get("height") or 0)
+            if width <= 0 or height <= 0:
+                with Image.open(image_path) as img:
+                    width, height = img.size
+                    
+            class_id = int(row.get("ClassId") or row.get("class_id") or 0)
+            samples.append(Sample(
+                image_path=image_path,
+                split=split,
+                class_id=class_id,
+                width=width,
+                height=height,
+                roi_x1=int(row.get("Roi.X1") or 0),
+                roi_y1=int(row.get("Roi.Y1") or 0),
+                roi_x2=int(row.get("Roi.X2") or width),
+                roi_y2=int(row.get("Roi.Y2") or height),
+                shape=shape_map.get(class_id, CLASS_SHAPES.get(class_id, "box")),
+                sample_id=f"{split}_{index:05d}",
+            ))
+
+    limit = config.get("limit")
+    return samples[: int(limit)] if limit else samples
 
 # ---------------------------------------------------------------------------
 # Progress display
@@ -798,7 +874,18 @@ def run_pipeline(config: dict[str, Any], config_path: Path | None = None) -> dic
     ensure_dir(output_root)
     (output_root / ".keep").write_text("", encoding="utf-8")
 
-    samples = load_samples(dataset_root, config, split)
+    dataset_type = str(config.get("dataset_type", "pytorch")).lower()
+    if dataset_type == "kaggle":
+        samples = load_samples_kaggle_dataset(dataset_root, config, split)
+    elif dataset_type == "pytorch":
+        if split == "test":
+            samples = load_samples_pytorch_test_dataset(dataset_root, config, split)
+        else:
+            samples = load_samples_pytorch_train_dataset(dataset_root, config, split)
+    else:
+        print(f"\n[ERROR] Unknown dataset type '{dataset_type}")
+
+
     attacks_config: dict[str, Any] = config.get("attacks", {})
     seed = int(config.get("seed", 7))
     extension = str(config.get("output_extension", ".png"))
