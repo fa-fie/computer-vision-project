@@ -33,5 +33,20 @@ def attack_first_model():
     eval_attack(model, device, "noise_blur")
 
 
+def attack_adv_occlusion_model():
+    # Load model
+    device = torch.device("cpu")
+    model = AlexNet()
+    model.load_state_dict(
+        torch.load(
+            os.path.join(os.getcwd(), "model", "adv_training_0.7_occlusion.pth"),
+            map_location=device,
+            weights_only=True,
+        )
+    )
+
+    # Evaluate on attacks
+    eval_attack(model, device, "occlusion")
+
 if __name__ == "__main__":
-    attack_first_model()
+    attack_adv_occlusion_model()
