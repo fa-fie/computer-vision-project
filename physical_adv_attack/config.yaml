@@ -40,13 +40,13 @@ attacks:
       
   noise_blur:
     enabled: true         
-    variants_per_image: 2
+    variants_per_image: 1
     noise_std: [10, 40]
     blur_radius: [0.0, 2.0]
 
   graffiti:
     enabled: true         
-    variants_per_image: 2
+    variants_per_image: 1
     texts: ["X", "?", "//", "NO"]
     font_size_ratio: [0.2, 0.5]
     opacity_range: [0.6, 0.95]

@@ -741,17 +741,17 @@ def load_samples_kaggle_dataset(dataset_root: Path, config: dict[str, Any], spli
 
 def load_samples_pytorch_train_dataset(dataset_root: Path, config: dict[str, Any], split: str) -> list[Sample]:
     shape_map = {int(k): str(v) for k, v in (config.get("shape_map") or {}).items()}
+    samples: list[Sample] = []
 
     train_pth = (dataset_root / "GTSRB" / "Training" ).resolve()
     for folder in train_pth.iterdir():
         if not folder.is_dir():
             continue
 
-        annotation_path = (dataset_root / "GTSRB" / "Training" / folder.name / "GT-" + folder.name + ".csv").resolve()
+        annotation_path = (dataset_root / "GTSRB" / "Training" / folder.name / f"GT-{folder.name}.csv").resolve()
 
         with annotation_path.open("r", encoding="utf-8", newline="") as handle:
             reader = csv.DictReader(handle, delimiter=";")
-            samples: list[Sample] = []
             for index, row in enumerate(reader):
                 image_path = (dataset_root / "GTSRB" / "Training" / folder.name / row.get("Filename")).resolve()
                 width = int(row.get("Width") or row.get("width") or 0)
