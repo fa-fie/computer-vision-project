@@ -1,7 +1,8 @@
-dataset_root: /home/javigil/Downloads/archive
+dataset_root: C:\Users\fanni\Documents\University\Master\Electives\Q3_Computer_Vision\computer-vision-project\data\gtsrb
+dataset_type: pytorch
 annotation_file:
 output_root: ./physical_adv_attack/generated
-split: test
+split: train
 seed: 7
 limit:
 output_extension: .png
@@ -36,3 +37,18 @@ attacks:
       - "#5A4634"
       - "#6B7280"
       - "#B91C1C"
+      
+  noise_blur:
+    enabled: true         
+    variants_per_image: 1
+    noise_std: [10, 40]
+    blur_radius: [0.0, 2.0]
+
+  graffiti:
+    enabled: true         
+    variants_per_image: 1
+    texts: ["X", "?", "//", "NO"]
+    font_size_ratio: [0.2, 0.5]
+    opacity_range: [0.6, 0.95]
+    palette: ["#ffffff", "#000000", "#ff0000"]
+    font_path: null
