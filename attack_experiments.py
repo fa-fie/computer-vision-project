@@ -17,7 +17,7 @@ def eval_attack(model, device, attack_name, batch_size=64):
 def attack_first_model():
     # Load model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = AlexNet()
+    model = AlexNet().to(device)
     model.load_state_dict(
         torch.load(
             os.path.join(os.getcwd(), "model", "alexnet_weights.pth"),
