@@ -16,7 +16,7 @@ def eval_attack(model, device, attack_name, batch_size=64):
 
 def attack_first_model():
     # Load model
-    device = torch.device("cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AlexNet()
     model.load_state_dict(
         torch.load(
@@ -35,8 +35,8 @@ def attack_first_model():
 
 def attack_adv_occlusion_model():
     # Load model
-    device = torch.device("cpu")
-    model = AlexNet()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = AlexNet().to(device)
     model.load_state_dict(
         torch.load(
             os.path.join(os.getcwd(), "model", "adv_training_0.7_occlusion.pth"),
