@@ -42,4 +42,4 @@ def plot_accuracies(model_weight_fnames):
 
 
 if __name__ == "__main__":
-    plot_over_epochs(["first_model_weights", "adv_training_0.7_occlusion"], ["Initial model", f"Adversarial training 30% occlusion"])
+    plot_over_epochs(["first_model_weights", "adv_training_0.7_occlusion", "adv_training_0.3_occlusion"], ["Initial model", f"Adversarial training 30% occlusion", f"Adversarial training 70% occlusion"])
