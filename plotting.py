@@ -15,32 +15,27 @@ def plot_over_epochs(files):
     max_loss = max([df.max(axis=0)["Loss"] for df in dfs]) + 0.05
 
     min_acc = max(min([df.min(axis=0)["Val Acc"] for df in dfs]) - 5, 0)
-    max_acc = min(max([df.max(axis=0)["Val Acc"] for df in dfs]) + 5, 100)
+    max_acc = min(max([df.max(axis=0)["Val Acc"] for df in dfs]) + 5, 102)
 
     for idx, (fname, title) in enumerate(files):
         df = dfs[idx]
-        fig, ax_left = plt.subplots()
 
-        ax_left.set_xlabel("Epoch")
-        ax_left.set_xticks(df["Epoch"] + 1, minor=True)
-        ax_left.set_xticks(range(0, len(df) + 1, 2), minor=False)
-        ax_left.set_ylim(ymin=min_acc, ymax=max_acc)
-        ax_left.set_ylabel("Accuracy [%]")
-        ax_left.plot(df["Epoch"] + 1, df["Val Acc"], c=plot_colors[0], label="Val. set accuracy")
+        loss_acc_plot(df, f"{title}\nValidation Set Accuracy Over Epochs", fname + "_acc", df["Val Acc"], "Accuracy [%]", (min_acc, max_acc), plot_colors[0])
+        loss_acc_plot(df, f"{title}\nCross Entropy Loss Over Epochs", fname + "_loss", df["Loss"], "Cross Entropy Loss", (min_loss, max_loss), plot_colors[1])
 
-        ax_right = ax_left.twinx()
-        ax_right.set_ylabel("Loss")
-        ax_right.set_ylim(ymin=min_loss, ymax=max_loss)
-        ax_right.plot(df["Epoch"] + 1, df["Loss"], c=plot_colors[1], label="Cross entropy loss")
-
-        ax_left.set_title(title)
-        fig.tight_layout()
-        # TODO: nicer legend placing
-        fig.legend(loc="upper right", borderaxespad=5.5)
-        ax_left.set_axisbelow(True)
-        ax_left.grid(axis="x", color="lightgrey", linestyle="--", linewidth=1)
-        plt.savefig(os.path.join(plot_folder, fname + "_over_epochs.png"))
-
+def loss_acc_plot(df, title, fname_prefix, y, y_label, y_lim, color):
+    fig, ax = plt.subplots()
+    ax.set_xlabel("Epoch")
+    ax.set_xticks(df["Epoch"] + 1, minor=True)
+    ax.set_xticks(range(0, len(df) + 1, 2), minor=False)
+    ax.set_ylim(ymin=y_lim[0], ymax=y_lim[1])
+    ax.set_ylabel(y_label)
+    ax.plot(df["Epoch"] + 1, y, c=color)
+    ax.set_title(title)
+    fig.tight_layout()
+    ax.set_axisbelow(True)
+    ax.grid(axis="both", color="lightgrey", linestyle="--", linewidth=1)
+    plt.savefig(os.path.join(plot_folder, fname_prefix + "_over_epochs.png"))
 
 def plot_test_accuracies(files, width=0.1, test_sets=[("Initial", "Initial GTSRB"), ("occlusion", "Occlusion Attack"), ("shadow", "Shadow Attack"), ("noise_blur", "Noise & Blur Attack"), ("graffiti", "Graffiti Attack")]):
     # Reference: https://matplotlib.org/stable/gallery/lines_bars_and_markers/barchart.html
@@ -71,11 +66,19 @@ def plot_test_accuracies(files, width=0.1, test_sets=[("Initial", "Initial GTSRB
 
 if __name__ == "__main__":
     files = [
+        ("first_model_weights", "100% Initial Data"),
+        ("adv_training_0.7_occlusion", f"30% Occlusion Attack And 70% Initial Data"),
+        ("adv_training_0.5_occlusion", f"50% Occlusion Attack And 50% Initial Data"),
+        ("adv_training_0.3_occlusion", f"70% Occlusion Attack And 30% Initial Data"),
+        ("adv_training_0_occlusion", f"100% Occlusion Attack And 100% Initial Data"),
+    ]
+    plot_over_epochs(files)
+    
+    files = [
         ("first_model_weights", "100% Initial"),
         ("adv_training_0.7_occlusion", f"30% Attack &\n70% Initial"),
+        ("adv_training_0.5_occlusion", f"50% Attack &\n50% Initial"),
         ("adv_training_0.3_occlusion", f"70% Attack &\n30% Initial"),
         ("adv_training_0_occlusion", f"100% Attack &\n100% Initial"),
     ]
-
-    plot_over_epochs(files)
     plot_test_accuracies(files)
