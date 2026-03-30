@@ -1,10 +1,10 @@
-dataset_root: C:\Users\fanni\Documents\University\Master\Electives\Q3_Computer_Vision\computer-vision-project\data\gtsrb
-dataset_type: pytorch
-annotation_file:
+dataset_root: /home/jgilaviles/Downloads/archive
+dataset_type: kaggle
+annotation_file: Train.csv
 output_root: ./physical_adv_attack/generated
 split: train
 seed: 7
-limit:
+limit: 5000
 output_extension: .png
 
 shape_map: {}
@@ -18,7 +18,7 @@ physical_transform:
 
 attacks:
   shadow:
-    enabled: true
+    enabled: false
     variants_per_image: 1
     darkness_range: [0.4, 0.6]
     coverage_ratio: [0.18, 0.5]
@@ -39,13 +39,13 @@ attacks:
       - "#B91C1C"
       
   noise_blur:
-    enabled: true         
+    enabled: false         
     variants_per_image: 1
     noise_std: [10, 40]
     blur_radius: [0.0, 2.0]
 
   graffiti:
-    enabled: true         
+    enabled: false         
     variants_per_image: 1
     texts: ["X", "?", "//", "NO"]
     font_size_ratio: [0.2, 0.5]
