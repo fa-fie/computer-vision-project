@@ -63,11 +63,11 @@ def eval_attack(model, device, attack_name, weights_fname, batch_size=64) -> flo
 
 
 def get_accuracies_of_model(weights_fname, attacks=["occlusion", "shadow", "noise_blur", "graffiti"], batch_size=64):
-    csv_path = os.path.join(results_folder, weights_fname + "_eval.csv")
+    csv_path = os.path.join(results_folder, weights_fname + "_percentages.csv")
 
     # If the result file does not already exist, run evaluation first
     if not os.path.isfile(csv_path):
-        eval_model_on_test_sets(weights_fname, csv_path, attacks, batch_size)
+        eval_model_on_test_sets(weights_fname, attacks, batch_size)
     
     # Load and return the data
     df = pd.read_csv(csv_path, index_col="Dataset")
@@ -106,5 +106,5 @@ def eval_model_on_test_sets(weights_fname, attacks=["occlusion", "shadow", "nois
 
 
 if __name__ == "__main__":
-    accuracies = eval_model_on_test_sets("100_initial_data")
+    accuracies = eval_model_on_test_sets("100_initial_100_occlusion")
     print(accuracies)

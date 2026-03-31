@@ -66,19 +66,19 @@ def plot_test_accuracies(files, width=0.1, test_sets=[("Initial", "Initial GTSRB
 
 if __name__ == "__main__":
     files = [
-        ("first_model_weights", "100% Initial Data"),
-        ("adv_training_0.7_occlusion", f"30% Occlusion Attack And 70% Initial Data"),
-        ("adv_training_0.5_occlusion", f"50% Occlusion Attack And 50% Initial Data"),
-        ("adv_training_0.3_occlusion", f"70% Occlusion Attack And 30% Initial Data"),
-        ("adv_training_0_occlusion", f"100% Occlusion Attack And 100% Initial Data"),
+        ("100_initial_data", "100% Initial Data"),
+        ("70_initial_30_occlusion", f"30% Occlusion Attack And 70% Initial Data"),
+        ("50_initial_50_occlusion", f"50% Occlusion Attack And 50% Initial Data"),
+        ("30_initial_70_occlusion", f"70% Occlusion Attack And 30% Initial Data"),
+        ("100_initial_100_occlusion", f"100% Occlusion Attack And 100% Initial Data"),
     ]
     plot_over_epochs(files)
     
     files = [
-        ("first_model_weights", "100% Initial"),
-        ("adv_training_0.7_occlusion", f"30% Attack &\n70% Initial"),
-        ("adv_training_0.5_occlusion", f"50% Attack &\n50% Initial"),
-        ("adv_training_0.3_occlusion", f"70% Attack &\n30% Initial"),
-        ("adv_training_0_occlusion", f"100% Attack &\n100% Initial"),
+        ("100_initial_data", "100% Initial"),
+        ("70_initial_30_occlusion", f"30% Attack &\n70% Initial"),
+        ("50_initial_50_occlusion", f"50% Attack &\n50% Initial"),
+        ("30_initial_70_occlusion", f"70% Attack &\n30% Initial"),
+        ("100_initial_100_occlusion", f"100% Attack &\n100% Initial"),
     ]
     plot_test_accuracies(files)
