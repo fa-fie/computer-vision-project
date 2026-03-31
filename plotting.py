@@ -8,7 +8,7 @@ plot_folder = os.path.join(os.getcwd(), "plots")
 plot_colors = ["midnightblue", "royalblue", "lightblue", "darkgreen", "darkseagreen"]
 
 def plot_over_epochs(files):
-    fpaths = [os.path.join(os.getcwd(), "model", csv_fname + ".csv") for csv_fname, _ in files]
+    fpaths = [os.path.join(os.getcwd(), "results", csv_fname + ".csv") for csv_fname, _ in files]
     dfs = [pd.read_csv(fpath) for fpath in fpaths]
 
     min_loss = max(min([df.min(axis=0)["Loss"] for df in dfs]) - 0.05, 0)
@@ -43,7 +43,7 @@ def plot_test_accuracies(files, width=0.1, test_sets=[("Initial", "Initial GTSRB
     ax.set_axisbelow(True)
     ax.grid(axis="y", color="darkslategrey", linestyle="--", linewidth=0.5)
 
-    accuracies = [eval_model(fname) for fname, _ in files]
+    accuracies = [get_accuracies_of_model(fname) for fname, _ in files]
     for group_idx, acc_model in enumerate(accuracies):
         for bar_idx, (test_set, _) in enumerate(test_sets):
             ax.bar(group_idx + bar_idx * width, acc_model[test_set], width, lw=0.5, edgecolor="darkslategrey", color=plot_colors[bar_idx])

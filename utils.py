@@ -8,27 +8,35 @@ import torchvision.transforms as transforms
 
 
 # Reference: https://docs.pytorch.org/tutorials/beginner/basics/data_tutorial.html#creating-a-custom-dataset-for-your-files
-class AttackTestDataset(Dataset):
-    def __init__(self, attack_name="shadow"):
+class TestDataset(Dataset):
+    def __init__(self, attack_name=None):
         self.attack_name = attack_name
-        self.img_dir = os.path.join(os.getcwd(), "physical_adv_attack", "generated", "test", self.attack_name)
         self.img_labels = pd.read_csv(
             os.path.join(os.getcwd(), "data", "gtsrb", "GT-final_test.csv"), sep=";"
         )
-        self.img_labels["Filename"] = self.img_labels["Filename"].map(
-            lambda n: f"{n.split(".")[0]}_{self.attack_name}_00.png"
-        )
+
+        if self.attack_name is None:
+            self.img_dir = os.path.join(os.getcwd(), "data", "gtsrb", "GTSRB", "Final_Test", "Images")
+        else:
+            self.img_dir = os.path.join(os.getcwd(), "physical_adv_attack", "generated", "test", self.attack_name)
+            self.img_labels["Attack Filename"] = self.img_labels["Filename"].map(
+                lambda n: f"{n.split(".")[0]}_{self.attack_name}_00.png"
+            )
 
     def __len__(self):
         return len(self.img_labels)
 
     def __getitem__(self, idx):
         img_info = self.img_labels.iloc[idx]
-
-        fname = img_info["Filename"]
         label = img_info["ClassId"]
 
-        img_path = os.path.join(self.img_dir, f"{label:02d}", fname)
+        if self.attack_name is None:
+            fname = img_info["Filename"]
+            img_path = os.path.join(self.img_dir, fname)
+        else:
+            fname = img_info["Attack Filename"]
+            img_path = os.path.join(self.img_dir, f"{label:02d}", fname)
+
         image = Image.open(img_path)
 
         transform = transforms.Compose(
@@ -45,4 +53,10 @@ class AttackTestDataset(Dataset):
         )
         image = transform(image)
 
-        return image, label
+        if self.attack_name is None:
+            original_fname = fname
+            fname = ""
+        else:
+            original_fname = img_info["Filename"]
+
+        return image, label, original_fname, fname
