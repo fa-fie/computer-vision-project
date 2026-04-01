@@ -93,6 +93,52 @@ class AttackDetectionDataset(Dataset):
         return image, torch.tensor(label, dtype=torch.float32)
 
 
+# ---------------------------------------------------------------------------
+# Dataset for training the learned denoiser.
+# Yields (attacked_image, clean_image) pairs so the denoiser learns to
+# reconstruct the clean version from the attacked input.
+# ---------------------------------------------------------------------------
+class DenoiserDataset(Dataset):
+    def __init__(self, manifest_path, attack_name="occlusion", split="train",
+                 dataset_root=None, transform=None):
+        self.transform = transform or GTSRB_TRANSFORM
+
+        manifest_path = os.path.abspath(manifest_path)
+        output_root = os.path.dirname(manifest_path)
+
+        df = pd.read_csv(manifest_path)
+        df = df[(df["split"] == split) & (df["attack"] == attack_name)].reset_index(drop=True)
+
+        if len(df) == 0:
+            raise ValueError(
+                f"No data found in manifest for attack='{attack_name}', split='{split}'. "
+                f"Run the generator first: python physical_adv_attack/run.py"
+            )
+
+        if dataset_root is None:
+            first = str(df.iloc[0]["original_path"])
+            if not os.path.isabs(first):
+                raise ValueError(
+                    "original_path in manifest is relative but dataset_root was not provided."
+                )
+
+        # build list of (attacked_path, clean_path) pairs
+        self.pairs = []
+        for _, row in df.iterrows():
+            orig = _resolve(row["original_path"], dataset_root)
+            attacked = _resolve(row["output_path"], output_root)
+            self.pairs.append((attacked, orig))
+
+    def __len__(self):
+        return len(self.pairs)
+
+    def __getitem__(self, idx):
+        attacked_path, clean_path = self.pairs[idx]
+        attacked = self.transform(Image.open(attacked_path).convert("RGB"))
+        clean = self.transform(Image.open(clean_path).convert("RGB"))
+        return attacked, clean
+
+
 # Same as AttackDetectionDataset but also returns the traffic sign class.
 # Used for E2E training where we need both losses: sign classification + attack detection.
 class E2EDataset(Dataset):

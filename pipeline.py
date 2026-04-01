@@ -95,6 +95,51 @@ def train_attack_classifier(classifier, train_loader, val_loader, device,
     return history
 
 
+def train_denoiser(denoiser, train_loader, val_loader, device,
+                   num_epochs=20, lr=1e-3, save_path="model/denoiser.pth"):
+    """
+    Train the denoiser on (attacked_image, clean_image) pairs.
+    Loss is MSE between the denoiser output and the clean image.
+    """
+    denoiser = denoiser.to(device)
+    optimizer = torch.optim.Adam(denoiser.parameters(), lr=lr)
+    criterion = nn.MSELoss()
+
+    best_val_loss = float('inf')
+    history = []
+
+    for epoch in range(1, num_epochs + 1):
+        denoiser.train()
+        train_loss = 0.0
+        for attacked, clean in train_loader:
+            attacked, clean = attacked.to(device), clean.to(device)
+            optimizer.zero_grad()
+            reconstructed = denoiser(attacked)
+            loss = criterion(reconstructed, clean)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item() * attacked.size(0)
+        train_loss /= len(train_loader.dataset)
+
+        denoiser.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for attacked, clean in val_loader:
+                attacked, clean = attacked.to(device), clean.to(device)
+                val_loss += criterion(denoiser(attacked), clean).item() * attacked.size(0)
+        val_loss /= len(val_loader.dataset)
+
+        history.append(dict(epoch=epoch, train_loss=train_loss, val_loss=val_loss))
+        print(f"Epoch {epoch:02d}/{num_epochs} | train_loss={train_loss:.6f} | val_loss={val_loss:.6f}")
+
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
+            torch.save(denoiser.state_dict(), save_path)
+            print(f"  -> saved (val_loss={val_loss:.6f})")
+
+    return history
+
 def train_end_to_end(pipeline, train_loader, val_loader, device,
                      num_epochs=10, lr=1e-4, lambda_det=0.5,
                      save_path="model/pipeline_e2e.pth"):
