@@ -1,9 +1,12 @@
+from typing import List
+
 import matplotlib.pyplot as plt
 from evaluate import *
 import pandas as pd
 import numpy as np
 import os
 
+attack_test_folder = os.path.join(os.getcwd(), "physical_adv_attack", "generated", "test")
 plot_folder = os.path.join(os.getcwd(), "plots")
 plot_colors = ["midnightblue", "royalblue", "lightblue", "darkgreen", "darkseagreen"]
 
@@ -63,9 +66,48 @@ def plot_test_accuracies(files, width=0.1, test_sets=[("Initial", "Initial GTSRB
     fig.tight_layout()
     plt.savefig(os.path.join(plot_folder, "test_accuracies.png"))
 
+class ImageInfo():
+    def __init__(self, img_path, label, pred_A, pred_B):
+        self.img_path = img_path
+        self.label = label
+        self.pred_A = pred_A
+        self.pred_B = pred_B
+
+def plot_tricked_initial_correct_adv_trained(n_imgs=5):
+    df = find_improved_prediction_imgs("100_initial_data_occlusion", "100_initial_100_occlusion_occlusion")
+    
+    imgs = []
+    for i in range(n_imgs):
+        row = df.loc[i]
+        img = ImageInfo(os.path.join(attack_test_folder, "occlusion", f"{row["Label_A"]:02d}", row["Attack Filename_A"]), row["Label_A"], row["Predicted_A"], row["Predicted_B"])
+        imgs.append(img)
+
+    plot_prediction_images(imgs, "Initial", "Adv. trained", "tricked_initial_correct_adv_trained")
+
+
+def plot_prediction_images(imgs: List[ImageInfo], model_name_A, model_name_B, fname):
+    plt.figure(figsize=(15, len(imgs)))
+    for idx, img_info in enumerate(imgs):
+        img = Image.open(img_info.img_path)
+
+        plt.subplot(1, 5, idx + 1)
+        plt.imshow(img)
+        plt.axis("off")
+
+        plt.text(0, -9, f"True: {img_info.label}", size=10)
+
+        color_fn = lambda l, pred: "green" if l == pred else "red"
+        plt.text(0, -6, f"{model_name_A}: {img_info.pred_A}", size=10, color=color_fn(img_info.label, img_info.pred_A))
+        plt.text(0, -3, f"{model_name_B}: {img_info.pred_B}", size=10, color=color_fn(img_info.label, img_info.pred_B))
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_folder, fname + ".png"))
+
 
 if __name__ == "__main__":
-    files = [
+    plot_tricked_initial_correct_adv_trained()
+    
+    """files = [
         ("100_initial_data", "100% Initial Data"),
         ("70_initial_30_occlusion", f"30% Occlusion Attack And 70% Initial Data"),
         ("50_initial_50_occlusion", f"50% Occlusion Attack And 50% Initial Data"),
@@ -81,4 +123,4 @@ if __name__ == "__main__":
         ("30_initial_70_occlusion", f"70% Attack &\n30% Initial"),
         ("100_initial_100_occlusion", f"100% Attack &\n100% Initial"),
     ]
-    plot_test_accuracies(files)
+    plot_test_accuracies(files)"""

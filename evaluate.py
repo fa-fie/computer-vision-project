@@ -105,6 +105,15 @@ def eval_model_on_test_sets(weights_fname, attacks=["occlusion", "shadow", "nois
     return accuracies
 
 
+def find_improved_prediction_imgs(csv_fname_wrong, csv_fname_correct):
+    df_wrong = pd.read_csv(os.path.join(results_folder, csv_fname_wrong + "_test_results.csv"))#, index_col="Filename")
+    df_wrong = df_wrong[df_wrong["Label"] != df_wrong["Predicted"]]
+
+    df_correct = pd.read_csv(os.path.join(results_folder, csv_fname_correct + "_test_results.csv"))#, index_col="Filename")
+    df_correct = df_correct[df_correct["Label"] == df_correct["Predicted"]]
+
+    return df_wrong.merge(df_correct, left_on="Filename", right_on="Filename", suffixes=("_A", "_B"))
+
 if __name__ == "__main__":
     accuracies = eval_model_on_test_sets("100_initial_100_occlusion")
     print(accuracies)
