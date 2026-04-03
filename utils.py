@@ -60,3 +60,33 @@ class TestDataset(Dataset):
             original_fname = img_info["Filename"]
 
         return image, label, original_fname, fname
+
+
+class OwnImagesDataset(Dataset):
+    def __init__(self):
+        self.folder = os.path.join(os.getcwd(), "data", "own_imgs")
+        self.imgs = os.listdir(self.folder)
+
+    def __len__(self):
+        return len(self.imgs)
+
+    def __getitem__(self, idx):
+        img_fname = self.imgs[idx]
+        label = int(img_fname.split(".")[0])
+        image = Image.open(os.path.join(self.folder, img_fname))
+
+        transform = transforms.Compose(
+            [
+                transforms.Resize(
+                    (250, 250)
+                ),  # For pretrained AlexNet we need at least 224x224
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.3403, 0.3121, 0.3214], std=[0.2724, 0.2608, 0.2669]
+                ),  # Normalize according to: https://github.com/tomlawrenceuk/GTSRB-Dataloader
+            ]
+        )
+        image = transform(image)
+
+        return image, label, img_fname, ""

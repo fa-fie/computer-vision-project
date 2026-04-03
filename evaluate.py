@@ -105,15 +105,33 @@ def eval_model_on_test_sets(weights_fname, attacks=["occlusion", "shadow", "nois
     return accuracies
 
 
+def eval_model_on_own_imgs(weights_fname, batch_size=64):
+    # Load model
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = AlexNet().to(device)
+    model.load_state_dict(
+        torch.load(
+            os.path.join(weights_folder, weights_fname + ".pth"),
+            map_location=device,
+            weights_only=True,
+        )
+    )
+
+    # Initialize dataset
+    dataloader = DataLoader(OwnImagesDataset(), batch_size=batch_size, shuffle=False)
+
+    # Run eval
+    csv_path = os.path.join(results_folder, f"{weights_fname}_own_imgs_results.csv")
+    evaluate_on_dataset(model, dataloader, device, csv_path)
+
 def find_improved_prediction_imgs(csv_fname_wrong, csv_fname_correct):
-    df_wrong = pd.read_csv(os.path.join(results_folder, csv_fname_wrong + "_test_results.csv"))#, index_col="Filename")
+    df_wrong = pd.read_csv(os.path.join(results_folder, csv_fname_wrong + "_test_results.csv"))
     df_wrong = df_wrong[df_wrong["Label"] != df_wrong["Predicted"]]
 
-    df_correct = pd.read_csv(os.path.join(results_folder, csv_fname_correct + "_test_results.csv"))#, index_col="Filename")
+    df_correct = pd.read_csv(os.path.join(results_folder, csv_fname_correct + "_test_results.csv"))
     df_correct = df_correct[df_correct["Label"] == df_correct["Predicted"]]
 
     return df_wrong.merge(df_correct, left_on="Filename", right_on="Filename", suffixes=("_A", "_B"))
 
 if __name__ == "__main__":
-    accuracies = eval_model_on_test_sets("100_initial_100_occlusion")
-    print(accuracies)
+    eval_model_on_own_imgs("100_initial_data")
