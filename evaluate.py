@@ -133,5 +133,58 @@ def find_improved_prediction_imgs(csv_fname_wrong, csv_fname_correct):
 
     return df_wrong.merge(df_correct, left_on="Filename", right_on="Filename", suffixes=("_A", "_B"))
 
+
+def compare_model_predictions(csv_fname_initial, csv_fnames_to_compare, csv_out_fname):
+    init = pd.read_csv(os.path.join(results_folder, csv_fname_initial + "_test_results.csv"))
+
+    total_count = float(len(init))
+    get_p = lambda df: round((len(df) / total_count) * 100, 1)
+
+    dict_out = {
+        "Model": [],
+        "Same (correct)": [],
+        "Same (incorrect)": [],
+        "Improved": [],
+        "Worsened": []
+    }
+
+    for csv_comp in csv_fnames_to_compare:
+        comp = pd.read_csv(os.path.join(results_folder, csv_comp + "_test_results.csv"))
+        merged = init.merge(comp, left_on="Filename", right_on="Filename", suffixes=("_init", "_comp"))
+        dict_out["Model"].append(csv_comp)
+        dict_out["Same (correct)"].append(get_p(merged[(merged["Label_init"] == merged["Predicted_init"]) & (merged["Label_init"] == merged["Predicted_comp"])]))
+        dict_out["Same (incorrect)"].append(get_p(merged[(merged["Label_init"] != merged["Predicted_init"]) & (merged["Label_init"] != merged["Predicted_comp"])]))
+        dict_out["Improved"].append(get_p(merged[(merged["Label_init"] != merged["Predicted_init"]) & (merged["Label_init"] == merged["Predicted_comp"])]))
+        dict_out["Worsened"].append(get_p(merged[(merged["Label_init"] == merged["Predicted_init"]) & (merged["Label_init"] != merged["Predicted_comp"])]))
+    
+    df_out = pd.DataFrame(dict_out)
+    csv_path = os.path.join(results_folder, csv_out_fname)
+    df_out.to_csv(csv_path, index=False)
+
+    return dict_out
+
+
 if __name__ == "__main__":
-    eval_model_on_own_imgs("100_initial_data")
+    # Compare initial model to adversarially trained models
+    # Performance on initial test data
+    compare_model_predictions(
+        "100_initial_data", 
+        [
+            "70_initial_30_occlusion", 
+            "50_initial_50_occlusion", 
+            "30_initial_70_occlusion", 
+            "100_initial_100_occlusion",
+        ],
+        "compare_adv_training_initial.csv"
+    )
+    # Performance on occlusion test data
+    compare_model_predictions(
+        "100_initial_data_occlusion", 
+        [
+            "70_initial_30_occlusion_occlusion", 
+            "50_initial_50_occlusion_occlusion", 
+            "30_initial_70_occlusion_occlusion", 
+            "100_initial_100_occlusion_occlusion"
+        ],
+        "compare_adv_training_occlusion.csv"
+    )

@@ -104,8 +104,56 @@ def plot_prediction_images(imgs: List[ImageInfo], model_name_A, model_name_B, fn
     plt.savefig(os.path.join(plot_folder, fname + ".png"))
 
 
+def plot_comparison(csv_fname_initial, files_to_compare, title, out_fname):
+    result_dict = compare_model_predictions(csv_fname_initial, [file for file, _ in files_to_compare], out_fname)
+
+    # Reference: https://matplotlib.org/stable/gallery/lines_bars_and_markers/bar_stacked.html
+    fig, ax = plt.subplots()
+    labels = [title for _, title in files_to_compare]
+    width = 0.2
+    ax.set_axisbelow(True)
+    ax.grid(axis="y", color="darkslategrey", linestyle="--", linewidth=0.5)
+
+    bottom = np.zeros(len(files_to_compare))
+    for idx, (type_perc, perc) in enumerate(result_dict.items()):
+        if type_perc == "Model":
+            continue
+
+        ax.bar(labels, perc, width, label=type_perc, bottom=bottom, color=plot_colors[idx - 1])
+        bottom += perc
+
+    ax.set_ylim(ymin=0, ymax=100)
+    ax.set_ylabel("%")
+    ax.set_title(title, pad=45)
+
+    # Reference: https://matplotlib.org/stable/users/explain/axes/legend_guide.html
+    ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc="lower center", ncols=2, borderaxespad=0.)
+
+    fig.tight_layout()
+    plt.savefig(os.path.join(plot_folder, f"{out_fname}.png"))
+
 if __name__ == "__main__":
-    plot_tricked_initial_correct_adv_trained()
+    plot_comparison("100_initial_data_occlusion", 
+        [
+            ("70_initial_30_occlusion_occlusion", f"30% Attack &\n70% Initial"),
+            ("50_initial_50_occlusion_occlusion", f"50% Attack &\n50% Initial"),
+            ("30_initial_70_occlusion_occlusion", f"70% Attack &\n30% Initial"),
+            ("100_initial_100_occlusion_occlusion", f"100% Attack &\n100% Initial"),
+        ],
+        "Compare Occlusion Attack Predictions to Initial Model",
+        "compare_adv_training_occlusion.csv")
+    
+    plot_comparison("100_initial_data",
+        [
+            ("70_initial_30_occlusion", f"30% Attack &\n70% Initial"),
+            ("50_initial_50_occlusion", f"50% Attack &\n50% Initial"),
+            ("30_initial_70_occlusion", f"70% Attack &\n30% Initial"),
+            ("100_initial_100_occlusion", f"100% Attack &\n100% Initial"),
+        ],
+        "Compare Predictions Initial Data to Initial Model",
+        "compare_adv_training.csv")
+    
+    # plot_tricked_initial_correct_adv_trained()
     
     """files = [
         ("100_initial_data", "100% Initial Data"),
