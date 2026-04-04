@@ -47,7 +47,8 @@ class AdversarialRobustnessPipeline(nn.Module):
 
 
 def train_attack_classifier(classifier, train_loader, val_loader, device,
-                            num_epochs=15, lr=1e-3, save_path="model/attack_classifier.pth"):
+                            num_epochs=15, lr=1e-3, save_path="model/attack_classifier.pth",
+                            callback=None):
     classifier = classifier.to(device)
     criterion = nn.BCEWithLogitsLoss()  # handles sigmoid internally, numerically stable
     optimizer = torch.optim.Adam(classifier.parameters(), lr=lr)
@@ -92,11 +93,15 @@ def train_attack_classifier(classifier, train_loader, val_loader, device,
             torch.save(classifier.state_dict(), save_path)
             print(f"  -> saved (val_acc={val_acc:.2f}%)")
 
+        if callback:
+            callback(history)
+
     return history
 
 
 def train_denoiser(denoiser, train_loader, val_loader, device,
-                   num_epochs=20, lr=1e-3, save_path="model/denoiser.pth"):
+                   num_epochs=20, lr=1e-3, save_path="model/denoiser.pth",
+                   callback=None):
     """
     Train the denoiser on (attacked_image, clean_image) pairs.
     Loss is MSE between the denoiser output and the clean image.
@@ -138,11 +143,15 @@ def train_denoiser(denoiser, train_loader, val_loader, device,
             torch.save(denoiser.state_dict(), save_path)
             print(f"  -> saved (val_loss={val_loss:.6f})")
 
+        if callback:
+            callback(history)
+
     return history
 
 def train_end_to_end(pipeline, train_loader, val_loader, device,
                      num_epochs=10, lr=1e-4, lambda_det=0.5,
-                     save_path="model/pipeline_e2e.pth"):
+                     save_path="model/pipeline_e2e.pth",
+                     callback=None):
     # Combined loss: sign classification + attack detection weighted by lambda_det
     # total = CrossEntropy(sign) + lambda_det * BCE(attack detected)
     pipeline = pipeline.to(device)
@@ -195,5 +204,8 @@ def train_end_to_end(pipeline, train_loader, val_loader, device,
             os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
             torch.save(pipeline.state_dict(), save_path)
             print(f"  -> saved (sign_acc={sign_acc:.2f}%)")
+
+        if callback:
+            callback(history)
 
     return history

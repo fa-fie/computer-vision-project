@@ -1,10 +1,10 @@
-dataset_root: /home/jgilaviles/Downloads/archive
-dataset_type: kaggle
+dataset_root: /home/jgilaviles/computer_vision/computer-vision-project/data/gtsrb
+dataset_type: pytorch
 annotation_file: Train.csv
 output_root: ./physical_adv_attack/generated
 split: train
 seed: 7
-limit: 5000
+limit: 
 output_extension: .png
 
 shape_map: {}
