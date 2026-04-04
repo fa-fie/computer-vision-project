@@ -24,9 +24,10 @@ class AdversarialRobustnessPipeline(nn.Module):
         # It needs to be an nn.Module that takes and returns (B, 3, 224, 224) tensors.
         self.gaussian_denoiser = gaussian_denoiser
 
-    def forward(self, x):
-        # get attack probability for each image in the batch
-        attack_prob = torch.sigmoid(self.attack_classifier(x))  # (B, 1)
+    def forward(self, x, return_attack_logits=False):
+        # get attack score for each image in the batch
+        attack_logits = self.attack_classifier(x)  # (B, 1)
+        attack_prob = torch.sigmoid(attack_logits)
 
         # apply Gaussian correction if available, otherwise pass image unchanged
         # TODO: replace with self.gaussian_denoiser(x) once implemented
@@ -37,6 +38,8 @@ class AdversarialRobustnessPipeline(nn.Module):
         blended = p * corrected + (1.0 - p) * x
 
         sign_logits = self.sign_classifier(blended)  # (B, 43)
+        if return_attack_logits:
+            return sign_logits, attack_prob, attack_logits
         return sign_logits, attack_prob
 
     @torch.no_grad()
@@ -158,6 +161,8 @@ def train_end_to_end(pipeline, train_loader, val_loader, device,
     sign_criterion = nn.CrossEntropyLoss()
     det_criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(pipeline.parameters(), lr=lr)
+    amp_enabled = device.type == "cuda"
+    scaler = torch.amp.GradScaler("cuda", enabled=amp_enabled)
 
     best_sign_acc = 0.0
     history = []
@@ -170,14 +175,16 @@ def train_end_to_end(pipeline, train_loader, val_loader, device,
             sign_labels = sign_labels.to(device)
             attack_labels = attack_labels.to(device).unsqueeze(1)
 
-            optimizer.zero_grad()
-            sign_logits, _ = pipeline(images)
-            # call attack_classifier directly to get raw logits for BCEWithLogitsLoss
-            # (pipeline.forward already applies sigmoid, which we don't want here)
-            attack_logits = pipeline.attack_classifier(images)
-            loss = sign_criterion(sign_logits, sign_labels) + lambda_det * det_criterion(attack_logits, attack_labels)
-            loss.backward()
-            optimizer.step()
+            optimizer.zero_grad(set_to_none=True)
+            with torch.amp.autocast("cuda", enabled=amp_enabled):
+                sign_logits, _, attack_logits = pipeline(images, return_attack_logits=True)
+                loss = (
+                    sign_criterion(sign_logits, sign_labels)
+                    + lambda_det * det_criterion(attack_logits, attack_labels)
+                )
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
             total_loss_sum += loss.item() * images.size(0)
         total_loss_sum /= len(train_loader.dataset)
 

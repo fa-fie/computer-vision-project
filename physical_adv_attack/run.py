@@ -11,7 +11,11 @@ from generator import run_pipeline
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate physical attack images.")
-    parser.add_argument("--config", required=True, help="Path to a YAML config file.")
+    parser.add_argument(
+        "--config",
+        default=str(Path(__file__).with_name("config.yaml")),
+        help="Path to a YAML config file.",
+    )
     args = parser.parse_args()
 
     with Path(args.config).open("r", encoding="utf-8") as handle:

@@ -88,10 +88,11 @@ pip install scikit-learn   # needed for evaluation cells
 
 ### 2. Download and generate data
 
-The GTSRB dataset downloads automatically the first time you run the notebook (via `torchvision.datasets.GTSRB`). The attacked images must be generated once:
+The GTSRB dataset downloads automatically the first time you run the notebook (via `torchvision.datasets.GTSRB`). The notebook now also auto-prepares the occlusion attack dataset and resolves the saved pretrained weights from `model/` before the pipeline section runs.
+
+If you want to generate the attacked images manually, run:
 
 ```bash
-# Edit physical_adv_attack/config.yaml first if needed (dataset_root is already set)
 python physical_adv_attack/run.py
 ```
 
@@ -124,24 +125,30 @@ Set both to `False` if you already have the weights (`model/first_model_weights.
 
 ### Section 4: Adversarial Detection Pipeline (cells 23–57)
 
-Controlled by three flags in cell 24:
+Controlled by five flags in the pipeline settings cell:
 
 ```python
 run_attack_classifier_training = False  # True → retrain from scratch
 run_denoiser_training          = False  # True → retrain from scratch
 run_e2e_training               = False  # True → run end-to-end fine-tuning
+auto_prepare_e2e_data          = True   # auto-generate manifest/images if missing
+force_regenerate_attack_data   = False  # regenerate attacked data even if manifest exists
 ```
 
-**All three are `False` by default** — the notebook loads the saved weights from `model/`. If the weights are present, you can run the entire section without training anything.
+The notebook also resolves `preferred_alexnet_weights = "adv_training_0.5_occlusion.pth"` automatically, falling back to `first_model_weights.pth` if needed.
+
+**The training flags are `False` by default** — the notebook loads the saved weights from `model/`. If the weights are present, you can run the entire section without training anything.
 
 #### Cell-by-cell guide
 
 | Cells | What happens |
 |---|---|
-| 24 | Set flags and paths. `dataset_root` points to `data/gtsrb` — no change needed locally. |
+| 24 | Set flags and paths. `dataset_root` points to `data/gtsrb` and `config_path` points to the generator config. |
 | 25 | Imports all modules. Uses `importlib.reload` so changes to `.py` files are picked up without restarting the kernel. |
 | 27 | Defines `make_training_callback()` — a live-updating Jupyter plot that refreshes after every training epoch. |
+| 28 | **Auto-prepare E2E assets** — checks / updates `physical_adv_attack/config.yaml`, generates attacked data if needed, and resolves pretrained weight paths. |
 | 29–30 | **Dataset verification** — prints manifest stats and shows 6 clean/attacked image pairs. Run this to confirm the generator output looks correct. |
+| 31 | **Build training datasets** — creates the three datasets used by the attack classifier, denoiser, and e2e pipeline. |
 | 32 | Builds all three data loaders (80/20 train/val split, seeded). |
 | 34 | Loads or trains the **AttackClassifier**. Shows saved training curves (BCE loss + val accuracy). |
 | 36 | Loads or trains the **LearnedDenoiser**. Shows saved training curves (MSE loss). |

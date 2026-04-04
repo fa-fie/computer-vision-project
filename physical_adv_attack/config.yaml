@@ -1,54 +1,83 @@
 dataset_root: /home/jgilaviles/computer_vision/computer-vision-project/data/gtsrb
 dataset_type: pytorch
 annotation_file: Train.csv
-output_root: ./physical_adv_attack/generated
+output_root: /home/jgilaviles/computer_vision/computer-vision-project/physical_adv_attack/generated
 split: train
 seed: 7
-limit: 
+limit: null
 output_extension: .png
-
 shape_map: {}
-
 physical_transform:
   enabled: true
-  rotation_degrees: [-5.0, 5.0]
-  brightness: [0.92, 1.08]
-  contrast: [0.92, 1.08]
-  gaussian_blur_radius: [0.0, 1.0]
-
+  rotation_degrees:
+  - -5.0
+  - 5.0
+  brightness:
+  - 0.92
+  - 1.08
+  contrast:
+  - 0.92
+  - 1.08
+  gaussian_blur_radius:
+  - 0.0
+  - 1.0
 attacks:
   shadow:
     enabled: false
     variants_per_image: 1
-    darkness_range: [0.4, 0.6]
-    coverage_ratio: [0.18, 0.5]
-    blur_radius: [1.0, 3.0]
+    darkness_range:
+    - 0.4
+    - 0.6
+    coverage_ratio:
+    - 0.18
+    - 0.5
+    blur_radius:
+    - 1.0
+    - 3.0
     attempts: 20
-
   occlusion:
     enabled: true
     variants_per_image: 1
-    sticker_count: [1, 3]
-    sticker_size_ratio: [0.12, 0.24]
-    opacity_range: [0.85, 1.0]
+    sticker_count:
+    - 1
+    - 3
+    sticker_size_ratio:
+    - 0.12
+    - 0.24
+    opacity_range:
+    - 0.85
+    - 1.0
     palette:
-      - "#111111"
-      - "#2C2C2C"
-      - "#5A4634"
-      - "#6B7280"
-      - "#B91C1C"
-      
+    - '#111111'
+    - '#2C2C2C'
+    - '#5A4634'
+    - '#6B7280'
+    - '#B91C1C'
   noise_blur:
-    enabled: false         
+    enabled: false
     variants_per_image: 1
-    noise_std: [10, 40]
-    blur_radius: [0.0, 2.0]
-
+    noise_std:
+    - 10
+    - 40
+    blur_radius:
+    - 0.0
+    - 2.0
   graffiti:
-    enabled: false         
+    enabled: false
     variants_per_image: 1
-    texts: ["X", "?", "//", "NO"]
-    font_size_ratio: [0.2, 0.5]
-    opacity_range: [0.6, 0.95]
-    palette: ["#ffffff", "#000000", "#ff0000"]
+    texts:
+    - X
+    - '?'
+    - //
+    - 'NO'
+    font_size_ratio:
+    - 0.2
+    - 0.5
+    opacity_range:
+    - 0.6
+    - 0.95
+    palette:
+    - '#ffffff'
+    - '#000000'
+    - '#ff0000'
     font_path: null
