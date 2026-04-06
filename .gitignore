@@ -1,11 +1,28 @@
+# Dataset (large, downloaded automatically)
 data/gtsrb
 !data/.keep
-.vscode/*
-model/*.pth
-idea/*
-__pycache__/*
+
+# Generated attack images
 physical_adv_attack/generated/*
-physical_adv_attack/__pycache__/*
+!physical_adv_attack/generated/.keep
+physical_adv_attack/generated_test/*
+
+# Model weights (large binary files)
+model/*.pth
+
+# Generated outputs
 plots/*.png
+inference_results.png
+
+# IDE / editor
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
 venv/
-generated_test/

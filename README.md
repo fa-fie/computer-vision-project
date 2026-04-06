@@ -41,56 +41,51 @@ Two evaluation modes:
 ## Repository Structure
 
 ```
-EvaluateAdversarialTraining.ipynb   ← Part 1: adversarial training & evaluation (Fanni)
-ComputerVision_Groupproject.ipynb   ← Part 2: adversarial detection pipeline (Javier)
-
-architectures.py          AlexNet (43-class sign classifier)
-                          LearnedDenoiser (U-Net autoencoder)
-attack_classifier.py      AttackClassifier (binary CNN: clean vs attacked)
-attack_detection_dataset.py  three dataset classes:
-                               AttackDetectionDataset  (binary labels)
-                               DenoiserDataset         (attacked/clean pairs)
-                               E2EDataset              (image + sign class + attack label)
-pipeline.py               AdversarialRobustnessPipeline + training loops
-evaluate.py               evaluation helpers: per-model test-set accuracy, attack eval,
-                          own-image eval, model comparison
-utils.py                  TestDataset, OwnImagesDataset (used by evaluate.py)
-plotting.py               training curves, accuracy bar charts, comparison plots
-
-physical_adv_attack/
-  generator.py            attack generator (occlusion, shadow, noise_blur, graffiti)
-  run.py                  CLI entry point
-  config.yaml             generator settings (attack type, dataset path, etc.)
-
-model/                    saved weights and training CSVs
-  first_model_weights.pth         AlexNet — clean training (used by Part 2 as fallback)
-  100_initial_data.pth            AlexNet — clean training (used by Part 1)
-  adv_training_0.5_occlusion.pth  AlexNet — 50% adversarial mix  ← used by Part 2 pipeline
-  50_initial_50_occlusion.pth     AlexNet — 50% adversarial mix  (used by Part 1)
-  70_initial_30_occlusion.pth     AlexNet — 70% clean / 30% occlusion mix
-  30_initial_70_occlusion.pth     AlexNet — 30% clean / 70% occlusion mix
-  100_initial_100_occlusion.pth   AlexNet — trained on 100% clean + 100% occlusion
-  attack_classifier.pth           AttackClassifier weights (Part 2)
-  denoiser.pth                    LearnedDenoiser weights (Part 2)
-  pipeline_e2e.pth                End-to-end fine-tuned pipeline (generated after e2e run)
-
-results/                  evaluation CSVs (per-image predictions and accuracy summaries)
-  <model>_test_results.csv          per-image predictions on clean GTSRB test set
-  <model>_<attack>_test_results.csv per-image predictions on attacked test set
-  <model>_percentages.csv           accuracy summary across all test sets
-  <model>_own_imgs_results.csv      predictions on own example images
-  compare_adv_training.csv          model comparison on clean test set
-  compare_adv_training_initial.csv  model comparison: same correct/incorrect/improved/worsened
-  compare_adv_training_occlusion.csv model comparison on occlusion test set
-
-data/
-  gtsrb/                  GTSRB dataset (downloaded automatically by torchvision)
-  own_imgs/               own traffic sign photos for inference (12.jpeg, 13.jpeg, 33.jpeg)
-
-physical_adv_attack/generated/
-  manifest.csv            index of all generated attacked images
-  train/occlusion/        attacked training images
-  test/occlusion/         attacked test images (used by Part 2 evaluation)
+├── EvaluateAdversarialTraining.ipynb   Part 1: adversarial training & evaluation
+├── ComputerVision_Groupproject.ipynb   Part 2: adversarial detection pipeline
+│
+├── architectures.py          AlexNet (43-class) + LearnedDenoiser (U-Net)
+├── attack_classifier.py      AttackClassifier — binary CNN (clean vs attacked)
+├── attack_detection_dataset.py  AttackDetectionDataset, DenoiserDataset, E2EDataset
+├── pipeline.py               AdversarialRobustnessPipeline + training functions
+├── notebook_setup.py         Path resolution + data-preparation helpers (used by Part 2)
+├── evaluate.py               Evaluation helpers: accuracy, per-attack eval, comparison
+├── utils.py                  TestDataset, OwnImagesDataset
+├── plotting.py               Training curves + accuracy/comparison bar charts
+├── requirements.txt
+│
+├── physical_adv_attack/
+│   ├── generator.py          Attack generator (occlusion, shadow, noise_blur, graffiti)
+│   ├── run.py                CLI entry point
+│   ├── config.yaml           Generator settings
+│   └── generated/            Generated attacked images + manifest.csv (git-ignored)
+│
+├── model/                    Saved model weights (*.pth git-ignored)
+│   ├── first_model_weights.pth         AlexNet — clean training (Part 2 fallback)
+│   ├── 100_initial_data.pth            AlexNet — clean training (Part 1)
+│   ├── adv_training_0.5_occlusion.pth  AlexNet — 50% clean / 50% occlusion (Part 2)
+│   ├── 50_initial_50_occlusion.pth     AlexNet — 50% clean / 50% occlusion (Part 1)
+│   ├── 70_initial_30_occlusion.pth     AlexNet — 70% clean / 30% occlusion
+│   ├── 30_initial_70_occlusion.pth     AlexNet — 30% clean / 70% occlusion
+│   ├── 100_initial_100_occlusion.pth   AlexNet — 100% clean + 100% occlusion
+│   ├── attack_classifier.pth           AttackClassifier weights
+│   ├── denoiser.pth                    LearnedDenoiser weights
+│   └── pipeline_e2e.pth                End-to-end pipeline (generated after e2e training)
+│
+├── results/                  Evaluation CSVs produced by Part 1
+│   ├── <model>_test_results.csv          Per-image predictions on clean test set
+│   ├── <model>_<attack>_test_results.csv Per-image predictions on attacked test set
+│   ├── <model>_percentages.csv           Accuracy summary across all test sets
+│   ├── <model>_own_imgs_results.csv      Predictions on own example images
+│   ├── compare_adv_training.csv          Model comparison on clean test set
+│   ├── compare_adv_training_initial.csv  Same/improved/worsened breakdown
+│   └── compare_adv_training_occlusion.csv Model comparison on occlusion test set
+│
+├── data/
+│   ├── gtsrb/                GTSRB dataset (downloaded automatically, git-ignored)
+│   └── own_imgs/             Own traffic sign photos (12.jpeg, 13.jpeg, 33.jpeg)
+│
+└── plots/                    Output directory for generated plot PNGs (git-ignored)
 ```
 
 ---
