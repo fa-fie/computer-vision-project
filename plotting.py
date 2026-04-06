@@ -86,19 +86,13 @@ def plot_tricked_initial_correct_adv_trained(n_imgs=5):
 
 
 def plot_prediction_images(imgs: List[ImageInfo], model_name_A, model_name_B, fname):
-    plt.figure(figsize=(15, len(imgs)))
+    plt.figure(figsize=(20, len(imgs)))
     for idx, img_info in enumerate(imgs):
         img = Image.open(img_info.img_path)
 
         plt.subplot(1, 5, idx + 1)
         plt.imshow(img)
         plt.axis("off")
-
-        plt.text(0, -9, f"True: {img_info.label}", size=10)
-
-        color_fn = lambda l, pred: "green" if l == pred else "red"
-        plt.text(0, -6, f"{model_name_A}: {img_info.pred_A}", size=10, color=color_fn(img_info.label, img_info.pred_A))
-        plt.text(0, -3, f"{model_name_B}: {img_info.pred_B}", size=10, color=color_fn(img_info.label, img_info.pred_B))
 
     plt.tight_layout()
     plt.savefig(os.path.join(plot_folder, fname + ".png"))
@@ -114,16 +108,22 @@ def plot_comparison(csv_fname_initial, files_to_compare, title, out_fname):
     ax.set_axisbelow(True)
     ax.grid(axis="y", color="darkslategrey", linestyle="--", linewidth=0.5)
 
+    column_map = {
+        "Same (correct)": "Correct -> Correct",
+        "Same (incorrect)": "Incorrect -> Incorrect",
+        "Improved": "Incorrect -> Correct",
+        "Worsened": "Correct -> Incorrect",
+    }
     bottom = np.zeros(len(files_to_compare))
-    for idx, (type_perc, perc) in enumerate(result_dict.items()):
-        if type_perc == "Model":
+    for idx, (col, perc) in enumerate(result_dict.items()):
+        if not col in column_map:
             continue
 
-        ax.bar(labels, perc, width, label=type_perc, bottom=bottom, color=plot_colors[idx - 1])
+        ax.bar(labels, perc, width, label=column_map[col], bottom=bottom, color=plot_colors[idx - 1])
         bottom += perc
 
     ax.set_ylim(ymin=0, ymax=100)
-    ax.set_ylabel("%")
+    ax.set_ylabel("% of test set")
     ax.set_title(title, pad=45)
 
     # Reference: https://matplotlib.org/stable/users/explain/axes/legend_guide.html
@@ -140,7 +140,7 @@ if __name__ == "__main__":
             ("30_initial_70_occlusion_occlusion", f"70% Attack &\n30% Initial"),
             ("100_initial_100_occlusion_occlusion", f"100% Attack &\n100% Initial"),
         ],
-        "Compare Occlusion Attack Predictions to Initial Model",
+        "Compare Predictions to Initial Model - Occlusion Attack Test Set",
         "compare_adv_training_occlusion.csv")
     
     plot_comparison("100_initial_data",
@@ -150,12 +150,12 @@ if __name__ == "__main__":
             ("30_initial_70_occlusion", f"70% Attack &\n30% Initial"),
             ("100_initial_100_occlusion", f"100% Attack &\n100% Initial"),
         ],
-        "Compare Predictions Initial Data to Initial Model",
+        "Compare Predictions to Initial Model - Initial Test Set",
         "compare_adv_training.csv")
     
-    # plot_tricked_initial_correct_adv_trained()
+    plot_tricked_initial_correct_adv_trained()
     
-    """files = [
+    files = [
         ("100_initial_data", "100% Initial Data"),
         ("70_initial_30_occlusion", f"30% Occlusion Attack And 70% Initial Data"),
         ("50_initial_50_occlusion", f"50% Occlusion Attack And 50% Initial Data"),
@@ -171,4 +171,4 @@ if __name__ == "__main__":
         ("30_initial_70_occlusion", f"70% Attack &\n30% Initial"),
         ("100_initial_100_occlusion", f"100% Attack &\n100% Initial"),
     ]
-    plot_test_accuracies(files)"""
+    plot_test_accuracies(files)
