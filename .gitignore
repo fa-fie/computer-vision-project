@@ -1,3 +1,11 @@
-data/*
+data/gtsrb
 !data/.keep
 .vscode/*
+model/*.pth
+idea/*
+__pycache__/*
+physical_adv_attack/generated/*
+physical_adv_attack/__pycache__/*
+plots/*.png
+venv/
+generated_test/

@@ -1,0 +1,5 @@
+Model,Same (correct),Same (incorrect),Improved,Worsened
+70_initial_30_occlusion_occlusion,75.6,7.5,15.3,1.5
+50_initial_50_occlusion_occlusion,75.0,7.3,15.5,2.1
+30_initial_70_occlusion_occlusion,75.1,6.2,16.6,2.1
+100_initial_100_occlusion_occlusion,75.9,5.8,17.1,1.2
